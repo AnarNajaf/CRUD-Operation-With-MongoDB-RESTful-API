@@ -1,0 +1,6 @@
+@iTarlaMapBackend_HostAddress = http://localhost:5212
+
+GET {{iTarlaMapBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
