@@ -9,8 +9,8 @@ namespace iTarlaMapBackend.Models;
 
 public class Motor
 {
-    [BsonRepresentation(BsonType.ObjectId)]
-
+    [BsonId]
+       [BsonRepresentation(BsonType.String)] // <-- fix
     public Guid Motor_Id { get; set; } = Guid.NewGuid();
     public string Type { get; set; } = null!;
 

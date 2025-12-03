@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<iTarlaDbConnection>(
     builder.Configuration.GetSection("iTarlaDBSettings")
 );
-
 // Add controllers
 builder.Services.AddControllers();
 
@@ -17,7 +16,7 @@ builder.Services.AddSwaggerGen();
 
 // Register your service (it will get IOptions<iTarlaDbConnection> automatically)
 builder.Services.AddSingleton<FarmerService>();
-
+builder.Services.AddSingleton<FarmService>();
 var app = builder.Build();
 
 // Enable Swagger UI

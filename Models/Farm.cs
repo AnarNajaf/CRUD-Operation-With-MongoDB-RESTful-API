@@ -9,9 +9,8 @@ namespace iTarlaMapBackend.Models
 {
     public class Farm
     {
-        [BsonRepresentation(BsonType.ObjectId)]
-
-
+        [BsonId]
+    [BsonRepresentation(BsonType.String)] // key fix
         public Guid Id { get; set; } = Guid.NewGuid();
         public string? Name { get; set; }
         public string? Color { get; set; }

@@ -9,14 +9,13 @@ namespace iTarlaMapBackend.Models;
 
 public class Sensor
 {
-    [BsonRepresentation(BsonType.ObjectId)]
-
+    [BsonId]
+    [BsonRepresentation(BsonType.String)] 
     public Guid Sensor_Id { get; set; } = Guid.NewGuid();
-    public string Type { get; set; } = null!;
 
+    public string Type { get; set; } = null!;
     public double Lat { get; set; }
     public double Lng { get; set; }
-
     public DateTime InstallationDate { get; set; }
     public bool IsActive { get; set; }
 }
