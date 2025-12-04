@@ -18,4 +18,5 @@ public class Sensor
     public double Lng { get; set; }
     public DateTime InstallationDate { get; set; }
     public bool IsActive { get; set; }
+    public string FarmId{get;set;}=null!;
 }

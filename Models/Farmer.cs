@@ -6,7 +6,7 @@ namespace iTarlaMapBackend.Models;
 public class Farmer
 {
     [BsonId]
-    [BsonRepresentation(BsonType.String)] // store Guid as string
+    [BsonRepresentation(BsonType.String)]
     public Guid Id { get; set; } = Guid.NewGuid();
     public string FullName { get; set; } = null!;
 

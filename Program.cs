@@ -17,6 +17,7 @@ builder.Services.AddSwaggerGen();
 // Register your service (it will get IOptions<iTarlaDbConnection> automatically)
 builder.Services.AddSingleton<FarmerService>();
 builder.Services.AddSingleton<FarmService>();
+builder.Services.AddSingleton<DeviceService>();
 var app = builder.Build();
 
 // Enable Swagger UI

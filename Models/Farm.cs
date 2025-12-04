@@ -10,7 +10,7 @@ namespace iTarlaMapBackend.Models
     public class Farm
     {
         [BsonId]
-    [BsonRepresentation(BsonType.String)] // key fix
+        [BsonRepresentation(BsonType.String)]
         public Guid Id { get; set; } = Guid.NewGuid();
         public string? Name { get; set; }
         public string? Color { get; set; }
@@ -21,6 +21,5 @@ namespace iTarlaMapBackend.Models
         public double Longitude { get; set; }
         public List<Motor> motors { get; set; } = new List<Motor>();
         public List<Sensor> sensors { get; set; } = new List<Sensor>();
-
     }
 }

@@ -10,7 +10,7 @@ namespace iTarlaMapBackend.Models;
 public class Motor
 {
     [BsonId]
-       [BsonRepresentation(BsonType.String)] // <-- fix
+    [BsonRepresentation(BsonType.String)] 
     public Guid Motor_Id { get; set; } = Guid.NewGuid();
     public string Type { get; set; } = null!;
 
@@ -19,4 +19,5 @@ public class Motor
 
     public DateTime InstallationDate { get; set; }
     public bool IsActive { get; set; }
+    public string FarmId{get;set;}=null!;
 }
