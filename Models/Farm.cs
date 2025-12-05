@@ -17,8 +17,7 @@ namespace iTarlaMapBackend.Models
         public string? ResponsiblePerson { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? FarmType { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+    public List<List<double>> Polygon { get; set; } = new List<List<double>>();
         public List<Motor> motors { get; set; } = new List<Motor>();
         public List<Sensor> sensors { get; set; } = new List<Sensor>();
     }

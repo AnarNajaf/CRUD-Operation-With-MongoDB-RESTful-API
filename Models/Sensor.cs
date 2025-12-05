@@ -11,12 +11,12 @@ public class Sensor
 {
     [BsonId]
     [BsonRepresentation(BsonType.String)] 
-    public Guid Sensor_Id { get; set; } = Guid.NewGuid();
-
+    public Guid Sensor_Id { get; set; }
     public string Type { get; set; } = null!;
     public double Lat { get; set; }
     public double Lng { get; set; }
-    public DateTime InstallationDate { get; set; }
+    [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+    public DateTime InstallationDate { get; set; } = new DateTime();
     public bool IsActive { get; set; }
     public string FarmId{get;set;}=null!;
 }
