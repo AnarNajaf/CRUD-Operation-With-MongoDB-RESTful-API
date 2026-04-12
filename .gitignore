@@ -1,0 +1,10 @@
+# Secrets
+appsettings.Secrets.json
+firebase-adminsdk.json
+
+# Environment
+.env
+
+# Build outputs
+bin/
+obj/
