@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("iTarlaMapBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b2e6c36f8e3935e7e90d44fa4b1a6bf640a037c1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+48323e2107e6883a07f9442db72661b3883d30f9")]
 [assembly: System.Reflection.AssemblyProductAttribute("iTarlaMapBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("iTarlaMapBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

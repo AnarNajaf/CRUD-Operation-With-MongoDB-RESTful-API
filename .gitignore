@@ -8,3 +8,4 @@ firebase-adminsdk.json
 # Build outputs
 bin/
 obj/
+appsettings.Secrets.json
