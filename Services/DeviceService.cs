@@ -168,6 +168,7 @@ namespace iTarlaMapBackend.Services
                 Lng = dto.Lng,
                 InstallationDate = dto.InstallationDate,
                 IsActive = false,
+                Mode = "manual",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

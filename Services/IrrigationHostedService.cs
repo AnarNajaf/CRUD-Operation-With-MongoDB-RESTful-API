@@ -121,9 +121,23 @@ namespace iTarlaMapBackend.BackgroundServices
                 var minutesOn = (now - motor.ActiveSince.Value).TotalMinutes;
 
                 var schedule = await scheduleService.GetByMotorIdDirectAsync(motor.Id);
-                var maxRuntime = (schedule?.MaxRuntimeMinutes ?? 0) > 0
-                    ? schedule!.MaxRuntimeMinutes
-                    : DefaultMaxRuntimeMinutes;
+
+                int maxRuntime;
+                if ((schedule?.MaxRuntimeMinutes ?? 0) > 0)
+                {
+                    // Explicit limit configured — applies to any mode
+                    maxRuntime = schedule!.MaxRuntimeMinutes;
+                }
+                else if (motor.Mode != "manual")
+                {
+                    // Scheduled/auto motors get the default safety cap
+                    maxRuntime = DefaultMaxRuntimeMinutes;
+                }
+                else
+                {
+                    // Manual mode with no explicit limit — farmer is in control, don't interfere
+                    continue;
+                }
 
                 if (minutesOn < maxRuntime) continue;
 
@@ -153,6 +167,13 @@ namespace iTarlaMapBackend.BackgroundServices
             if (motor == null)
             {
                 _logger.LogWarning("Motor {MotorId} not found, skipping.", schedule.MotorId);
+                return;
+            }
+
+            // Don't interfere if a manual override is already running
+            if (motor.IsActive)
+            {
+                _logger.LogDebug("Motor {Code} already active — skipping scheduled trigger.", motor.DeviceCode);
                 return;
             }
 

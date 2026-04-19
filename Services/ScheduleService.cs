@@ -17,6 +17,10 @@ namespace iTarlaMapBackend.Services
             _schedules = db.GetCollection<Schedule>("Schedules");
         }
 
+        public async Task<Schedule?> GetByIdAsync(Guid scheduleId, Guid farmerId) =>
+            await _schedules.Find(s => s.Id == scheduleId && s.FarmerId == farmerId)
+                .FirstOrDefaultAsync();
+
         public async Task<Schedule?> GetByMotorIdAsync(Guid motorId, Guid farmerId) =>
             await _schedules.Find(s => s.MotorId == motorId && s.FarmerId == farmerId)
                 .FirstOrDefaultAsync();
