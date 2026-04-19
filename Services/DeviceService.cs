@@ -206,6 +206,7 @@ namespace iTarlaMapBackend.Services
 
     var update = Builders<Motor>.Update
         .Set(m => m.IsActive, requestedState)
+        .Set(m => m.ActiveSince, requestedState ? DateTime.UtcNow : (DateTime?)null)
         .Set(m => m.UpdatedAt, DateTime.UtcNow);
 
     await _motorCollection.UpdateOneAsync(
@@ -216,6 +217,9 @@ namespace iTarlaMapBackend.Services
     return (true, requestedState, "Motor status updated successfully");
 }
 
+        public async Task<List<Motor>> GetAllActiveMotorsAsync() =>
+            await _motorCollection.Find(m => m.IsActive && m.ActiveSince != null).ToListAsync();
+
         public async Task<bool> RemoveMotorAsync(Guid motorId, Guid farmerId)
         {
             var result = await _motorCollection.DeleteOneAsync(
@@ -224,5 +228,18 @@ namespace iTarlaMapBackend.Services
 
             return result.DeletedCount > 0;
         }
+    public async Task<bool> UpdateMotorModeAsync(Guid motorId, Guid farmerId, string mode)
+{
+    var update = Builders<Motor>.Update
+        .Set(m => m.Mode, mode)
+        .Set(m => m.UpdatedAt, DateTime.UtcNow);
+
+    var result = await _motorCollection.UpdateOneAsync(
+        m => m.Id == motorId && m.FarmerId == farmerId,
+        update
+    );
+    return result.ModifiedCount > 0;
+}
     }
+    
 }

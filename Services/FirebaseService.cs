@@ -22,5 +22,15 @@ namespace iTarlaMapBackend.Services
                 { "updatedAt", Timestamp.GetCurrentTimestamp() }
             }, SetOptions.MergeAll);
         }
+
+        // Returns when the sensor last pushed data, or null if unknown/missing
+        public async Task<DateTime?> GetSensorLastUpdateAsync(string deviceCode)
+        {
+            var snapshot = await _db.Collection("Sensors").Document(deviceCode).GetSnapshotAsync();
+            if (!snapshot.Exists) return null;
+            if (snapshot.TryGetValue<Timestamp>("updatedAt", out var ts))
+                return ts.ToDateTime();
+            return null;
+        }
     }
 }

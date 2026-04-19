@@ -8,5 +8,6 @@ namespace iTarlaMapBackend.Models
         public string MotorsCollectionName { get; set; }=null!;
         public string FarmsCollectionName { get; set; }=null!;
         public string FarmersCollectionName { get; set; }=null!;
+        public string LogsCollectionName { get; set; } = null!;
     }
 }

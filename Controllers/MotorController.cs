@@ -73,19 +73,28 @@ namespace iTarlaMapBackend.Controllers
             return Ok("Motor updated successfully.");
         }
         [HttpPatch("{id}/status")]
-public async Task<IActionResult> UpdateMotorStatus(string id, [FromBody] UpdateMotorStatus dto)
+        public async Task<IActionResult> UpdateMotorStatus(string id, [FromBody] UpdateMotorStatus dto)
+        {
+            var farmerId = await GetCurrentFarmerIdAsync();
+
+            if (!Guid.TryParse(id, out var motorId))
+                return BadRequest("Invalid motor id.");
+
+            var result = await _deviceService.UpdateMotorStatusAsync(motorId, farmerId, dto.IsActive);
+
+            if (!result.success)
+                return BadRequest(result.message);
+
+            return Ok(new { isActive = result.isActive });
+        }
+        [HttpPatch("{id}/mode")]
+public async Task<IActionResult> UpdateMode(string id, [FromBody] UpdateMotorModeDto dto)
 {
     var farmerId = await GetCurrentFarmerIdAsync();
-
-    if (!Guid.TryParse(id, out var motorId))
-        return BadRequest("Invalid motor id.");
-
-    var result = await _deviceService.UpdateMotorStatusAsync(motorId, farmerId, dto.IsActive);
-
-    if (!result.success)
-        return BadRequest(result.message);
-
-    return Ok(new { isActive = result.isActive });
+    if (!Guid.TryParse(id, out var motorId)) return BadRequest("Invalid id.");
+    var result = await _deviceService.UpdateMotorModeAsync(motorId, farmerId, dto.Mode);
+    if (!result) return NotFound();
+    return Ok(new { mode = dto.Mode });
 }
 
         [HttpDelete("{id}")]

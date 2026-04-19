@@ -21,6 +21,8 @@ namespace iTarlaMapBackend.Models
 
         public DateTime InstallationDate { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; }
+        public DateTime? ActiveSince { get; set; } // set when turned ON, cleared when turned OFF
+        public string Mode { get; set; } = "manual"; // "manual" | "scheduled" | "auto"
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
