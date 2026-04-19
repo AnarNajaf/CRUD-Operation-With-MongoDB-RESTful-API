@@ -33,7 +33,7 @@ namespace iTarlaMapBackend.Services
             return null;
         }
 
-        // Returns current soil moisture (0-100), or null if unavailable/stale
+        // Returns current soil moisture (0-100), or null if field missing
         public async Task<(double? moisture, DateTime? updatedAt)> GetSensorMoistureAsync(string deviceCode)
         {
             var snapshot = await _db.Collection("Sensors").Document(deviceCode).GetSnapshotAsync();
@@ -42,8 +42,14 @@ namespace iTarlaMapBackend.Services
             double? moisture = null;
             DateTime? updatedAt = null;
 
-            if (snapshot.TryGetValue<double>("soilMoisture", out var m)) moisture = m;
-            if (snapshot.TryGetValue<Timestamp>("updatedAt", out var ts)) updatedAt = ts.ToDateTime();
+            // Firestore stores manually-entered integers as long, not double — try both
+            if (snapshot.TryGetValue<double>("soilMoisture", out var mDouble))
+                moisture = mDouble;
+            else if (snapshot.TryGetValue<long>("soilMoisture", out var mLong))
+                moisture = (double)mLong;
+
+            if (snapshot.TryGetValue<Timestamp>("updatedAt", out var ts))
+                updatedAt = ts.ToDateTime();
 
             return (moisture, updatedAt);
         }

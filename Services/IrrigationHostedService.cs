@@ -133,9 +133,11 @@ namespace iTarlaMapBackend.BackgroundServices
                 {
                     var (moisture, updatedAt) = await firebaseService.GetSensorMoistureAsync(code);
                     if (moisture == null) continue;
-                    // Skip stale data older than 30 minutes
-                    if (updatedAt != null && (now - updatedAt.Value).TotalMinutes > 30) continue;
+                    // Skip only if data is older than 2 hours (sensor likely offline)
+                    if (updatedAt != null && (now - updatedAt.Value).TotalHours > 2) continue;
                     readings.Add(moisture.Value);
+                    _logger.LogDebug("Auto sensor {Code}: moisture={M:F1}%, age={Age:F0}min",
+                        code, moisture.Value, updatedAt.HasValue ? (now - updatedAt.Value).TotalMinutes : 0);
                 }
 
                 if (readings.Count == 0)
