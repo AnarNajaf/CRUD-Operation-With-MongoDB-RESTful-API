@@ -97,6 +97,16 @@ public async Task<IActionResult> UpdateMode(string id, [FromBody] UpdateMotorMod
     return Ok(new { mode = dto.Mode });
 }
 
+        [HttpPatch("{id}/auto-config")]
+        public async Task<IActionResult> SaveAutoConfig(string id, [FromBody] SaveAutoConfigDto dto)
+        {
+            var farmerId = await GetCurrentFarmerIdAsync();
+            if (!Guid.TryParse(id, out var motorId)) return BadRequest("Invalid id.");
+            var motor = await _deviceService.SaveAutoConfigAsync(motorId, farmerId, dto);
+            if (motor == null) return NotFound();
+            return Ok(motor);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {

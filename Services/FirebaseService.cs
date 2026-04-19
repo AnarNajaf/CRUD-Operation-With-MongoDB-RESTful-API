@@ -32,5 +32,20 @@ namespace iTarlaMapBackend.Services
                 return ts.ToDateTime();
             return null;
         }
+
+        // Returns current soil moisture (0-100), or null if unavailable/stale
+        public async Task<(double? moisture, DateTime? updatedAt)> GetSensorMoistureAsync(string deviceCode)
+        {
+            var snapshot = await _db.Collection("Sensors").Document(deviceCode).GetSnapshotAsync();
+            if (!snapshot.Exists) return (null, null);
+
+            double? moisture = null;
+            DateTime? updatedAt = null;
+
+            if (snapshot.TryGetValue<double>("soilMoisture", out var m)) moisture = m;
+            if (snapshot.TryGetValue<Timestamp>("updatedAt", out var ts)) updatedAt = ts.ToDateTime();
+
+            return (moisture, updatedAt);
+        }
     }
 }

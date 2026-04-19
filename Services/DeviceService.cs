@@ -241,6 +241,27 @@ namespace iTarlaMapBackend.Services
     );
     return result.ModifiedCount > 0;
 }
+
+    public async Task<Motor?> SaveAutoConfigAsync(Guid motorId, Guid farmerId, SaveAutoConfigDto dto)
+    {
+        var update = Builders<Motor>.Update
+            .Set(m => m.LinkedSensorCodes, dto.LinkedSensorCodes)
+            .Set(m => m.LowerThreshold, dto.LowerThreshold)
+            .Set(m => m.UpperThreshold, dto.UpperThreshold)
+            .Set(m => m.AutoMaxRuntimeMinutes, dto.AutoMaxRuntimeMinutes)
+            .Set(m => m.Mode, "auto")
+            .Set(m => m.UpdatedAt, DateTime.UtcNow);
+
+        await _motorCollection.UpdateOneAsync(
+            m => m.Id == motorId && m.FarmerId == farmerId,
+            update
+        );
+
+        return await _motorCollection.Find(m => m.Id == motorId && m.FarmerId == farmerId).FirstOrDefaultAsync();
     }
-    
+
+    public async Task<List<Motor>> GetMotorsByModeAsync(string mode) =>
+        await _motorCollection.Find(m => m.Mode == mode).ToListAsync();
+    }
+
 }

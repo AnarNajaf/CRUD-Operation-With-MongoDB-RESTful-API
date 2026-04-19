@@ -24,6 +24,12 @@ namespace iTarlaMapBackend.Models
         public DateTime? ActiveSince { get; set; } // set when turned ON, cleared when turned OFF
         public string Mode { get; set; } = "manual"; // "manual" | "scheduled" | "auto"
 
+        // Auto mode config
+        public List<string> LinkedSensorCodes { get; set; } = new();
+        public double LowerThreshold { get; set; } = 30;   // turn ON below this %
+        public double UpperThreshold { get; set; } = 60;   // turn OFF above this %
+        public int AutoMaxRuntimeMinutes { get; set; } = 60;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }

@@ -24,6 +24,7 @@ namespace iTarlaMapBackend.BackgroundServices
             while (!stoppingToken.IsCancellationRequested)
             {
                 await CheckAndRunSchedules();
+                await CheckAndRunAutoMode();
                 await RunWatchdog();
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
@@ -46,6 +47,14 @@ namespace iTarlaMapBackend.BackgroundServices
             {
                 var motor = await deviceService.GetMotorByIdAsync(schedule.MotorId, schedule.FarmerId);
                 if (motor == null || motor.Mode != "scheduled") continue;
+
+                // ── Day-of-week filter ────────────────────────────────────────
+                if (schedule.AllowedDays?.Count > 0 &&
+                    !schedule.AllowedDays.Contains((int)now.DayOfWeek))
+                {
+                    _logger.LogDebug("Motor {Code} skipped — {Day} not in allowed days.", motor.DeviceCode, now.DayOfWeek);
+                    continue;
+                }
 
                 // ── Forbidden hours check ─────────────────────────────────────
                 if (IsInForbiddenWindow(schedule, now))
@@ -96,6 +105,95 @@ namespace iTarlaMapBackend.BackgroundServices
                         await TriggerIrrigation(
                             schedule, schedule.DurationMinutes,
                             deviceService, scheduleService, firebaseService, logService);
+                    }
+                }
+            }
+        }
+
+        // ── Auto mode: moisture-based start/stop ──────────────────────────────
+
+        private async Task CheckAndRunAutoMode()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var deviceService   = scope.ServiceProvider.GetRequiredService<DeviceService>();
+            var firebaseService = scope.ServiceProvider.GetRequiredService<FirebaseService>();
+            var logService      = scope.ServiceProvider.GetRequiredService<LogService>();
+
+            var autoMotors = await deviceService.GetMotorsByModeAsync("auto");
+            var now = DateTime.UtcNow;
+
+            foreach (var motor in autoMotors)
+            {
+                if (motor.LinkedSensorCodes == null || motor.LinkedSensorCodes.Count == 0)
+                    continue;
+
+                // Collect fresh moisture readings from linked sensors
+                var readings = new List<double>();
+                foreach (var code in motor.LinkedSensorCodes)
+                {
+                    var (moisture, updatedAt) = await firebaseService.GetSensorMoistureAsync(code);
+                    if (moisture == null) continue;
+                    // Skip stale data older than 30 minutes
+                    if (updatedAt != null && (now - updatedAt.Value).TotalMinutes > 30) continue;
+                    readings.Add(moisture.Value);
+                }
+
+                if (readings.Count == 0)
+                {
+                    _logger.LogDebug("Auto motor {Code} — all linked sensors stale or missing, skipping.", motor.DeviceCode);
+                    continue;
+                }
+
+                var avgMoisture = readings.Average();
+                _logger.LogDebug("Auto motor {Code} avg moisture: {Avg:F1}% (lower={Low}, upper={High})",
+                    motor.DeviceCode, avgMoisture, motor.LowerThreshold, motor.UpperThreshold);
+
+                if (!motor.IsActive && avgMoisture < motor.LowerThreshold)
+                {
+                    // Soil is dry — turn ON
+                    var result = await deviceService.UpdateMotorStatusAsync(motor.Id, motor.FarmerId, true);
+                    if (result.success)
+                    {
+                        await firebaseService.SetMotorActiveAsync(motor.DeviceCode, true);
+                        await logService.LogAsync(motor.Id, motor.DeviceCode, "auto_started", true,
+                            $"Avg moisture {avgMoisture:F1}% < threshold {motor.LowerThreshold}%");
+                        _logger.LogInformation("Auto: motor {Code} started (moisture {Avg:F1}% < {Low}%)",
+                            motor.DeviceCode, avgMoisture, motor.LowerThreshold);
+
+                        // Safety: schedule auto-stop after AutoMaxRuntimeMinutes
+                        if (motor.AutoMaxRuntimeMinutes > 0)
+                        {
+                            var motorId = motor.Id;
+                            var farmerId = motor.FarmerId;
+                            var deviceCode = motor.DeviceCode;
+                            var maxMin = motor.AutoMaxRuntimeMinutes;
+                            _ = Task.Run(async () =>
+                            {
+                                await Task.Delay(TimeSpan.FromMinutes(maxMin));
+                                // Only stop if still in auto mode and still active
+                                var current = await deviceService.GetMotorByIdAsync(motorId, farmerId);
+                                if (current?.Mode == "auto" && current.IsActive)
+                                {
+                                    await deviceService.UpdateMotorStatusAsync(motorId, farmerId, false);
+                                    await firebaseService.SetMotorActiveAsync(deviceCode, false);
+                                    await logService.LogAsync(motorId, deviceCode, "auto_timeout", true,
+                                        $"Auto max runtime {maxMin} min reached.");
+                                }
+                            });
+                        }
+                    }
+                }
+                else if (motor.IsActive && avgMoisture >= motor.UpperThreshold)
+                {
+                    // Soil is wet enough — turn OFF
+                    var result = await deviceService.UpdateMotorStatusAsync(motor.Id, motor.FarmerId, false);
+                    if (result.success)
+                    {
+                        await firebaseService.SetMotorActiveAsync(motor.DeviceCode, false);
+                        await logService.LogAsync(motor.Id, motor.DeviceCode, "auto_stopped", true,
+                            $"Avg moisture {avgMoisture:F1}% >= threshold {motor.UpperThreshold}%");
+                        _logger.LogInformation("Auto: motor {Code} stopped (moisture {Avg:F1}% >= {High}%)",
+                            motor.DeviceCode, avgMoisture, motor.UpperThreshold);
                     }
                 }
             }
