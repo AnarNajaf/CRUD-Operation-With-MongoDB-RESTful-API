@@ -133,22 +133,19 @@ namespace iTarlaMapBackend.BackgroundServices
                 {
                     var (moisture, updatedAt) = await firebaseService.GetSensorMoistureAsync(code);
                     if (moisture == null) continue;
-                    // Skip only if data is older than 2 hours (sensor likely offline)
-                    if (updatedAt != null && (now - updatedAt.Value).TotalHours > 2) continue;
                     readings.Add(moisture.Value);
-                    _logger.LogDebug("Auto sensor {Code}: moisture={M:F1}%, age={Age:F0}min",
-                        code, moisture.Value, updatedAt.HasValue ? (now - updatedAt.Value).TotalMinutes : 0);
+                    _logger.LogInformation("Auto sensor {Code}: moisture={M:F1}%", code, moisture.Value);
                 }
 
                 if (readings.Count == 0)
                 {
-                    _logger.LogDebug("Auto motor {Code} — all linked sensors stale or missing, skipping.", motor.DeviceCode);
+                    _logger.LogInformation("Auto motor {Code} — all linked sensors stale or missing, skipping.", motor.DeviceCode);
                     continue;
                 }
 
                 var avgMoisture = readings.Average();
-                _logger.LogDebug("Auto motor {Code} avg moisture: {Avg:F1}% (lower={Low}, upper={High})",
-                    motor.DeviceCode, avgMoisture, motor.LowerThreshold, motor.UpperThreshold);
+                _logger.LogInformation("Auto motor {Code} avg moisture: {Avg:F1}% (lower={Low}, upper={High}) isActive={Active}",
+                    motor.DeviceCode, avgMoisture, motor.LowerThreshold, motor.UpperThreshold, motor.IsActive);
 
                 if (!motor.IsActive && avgMoisture < motor.LowerThreshold)
                 {
