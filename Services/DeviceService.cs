@@ -197,26 +197,22 @@ namespace iTarlaMapBackend.Services
         }
 
         public async Task<(bool success, bool isActive, string message)> UpdateMotorStatusAsync(Guid motorId, Guid farmerId, bool requestedState)
-{
-    var motor = await _motorCollection
-        .Find(m => m.Id == motorId && m.FarmerId == farmerId)
-        .FirstOrDefaultAsync();
+        {
+            var update = Builders<Motor>.Update
+                .Set(m => m.IsActive, requestedState)
+                .Set(m => m.ActiveSince, requestedState ? DateTime.UtcNow : (DateTime?)null)
+                .Set(m => m.UpdatedAt, DateTime.UtcNow);
 
-    if (motor == null)
-        return (false, false, "Motor not found");
+            var result = await _motorCollection.UpdateOneAsync(
+                m => m.Id == motorId && m.FarmerId == farmerId,
+                update
+            );
 
-    var update = Builders<Motor>.Update
-        .Set(m => m.IsActive, requestedState)
-        .Set(m => m.ActiveSince, requestedState ? DateTime.UtcNow : (DateTime?)null)
-        .Set(m => m.UpdatedAt, DateTime.UtcNow);
+            if (result.MatchedCount == 0)
+                return (false, false, $"Motor not found (id={motorId}, farmerId={farmerId})");
 
-    await _motorCollection.UpdateOneAsync(
-        m => m.Id == motorId && m.FarmerId == farmerId,
-        update
-    );
-
-    return (true, requestedState, "Motor status updated successfully");
-}
+            return (true, requestedState, "Motor status updated successfully");
+        }
 
         public async Task<List<Motor>> GetAllActiveMotorsAsync() =>
             await _motorCollection.Find(m => m.IsActive && m.ActiveSince != null).ToListAsync();

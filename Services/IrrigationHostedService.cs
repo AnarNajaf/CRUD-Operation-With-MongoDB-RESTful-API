@@ -23,9 +23,15 @@ namespace iTarlaMapBackend.BackgroundServices
             _logger.LogInformation("Irrigation scheduler started.");
             while (!stoppingToken.IsCancellationRequested)
             {
-                await CheckAndRunSchedules();
-                await CheckAndRunAutoMode();
-                await RunWatchdog();
+                try { await CheckAndRunSchedules(); }
+                catch (Exception ex) { _logger.LogError(ex, "CheckAndRunSchedules crashed."); }
+
+                try { await CheckAndRunAutoMode(); }
+                catch (Exception ex) { _logger.LogError(ex, "CheckAndRunAutoMode crashed."); }
+
+                try { await RunWatchdog(); }
+                catch (Exception ex) { _logger.LogError(ex, "RunWatchdog crashed."); }
+
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
@@ -122,10 +128,20 @@ namespace iTarlaMapBackend.BackgroundServices
             var autoMotors = await deviceService.GetMotorsByModeAsync("auto");
             var now = DateTime.UtcNow;
 
+            _logger.LogInformation("Auto mode tick: {Count} auto motor(s) found.", autoMotors.Count);
+
             foreach (var motor in autoMotors)
             {
+                _logger.LogInformation(
+                    "Auto motor {Code}: isActive={Active}, lower={Low}, upper={High}, sensors=[{Sensors}]",
+                    motor.DeviceCode, motor.IsActive, motor.LowerThreshold, motor.UpperThreshold,
+                    string.Join(",", motor.LinkedSensorCodes ?? new()));
+
                 if (motor.LinkedSensorCodes == null || motor.LinkedSensorCodes.Count == 0)
+                {
+                    _logger.LogInformation("Auto motor {Code} skipped — no linked sensors.", motor.DeviceCode);
                     continue;
+                }
 
                 // Collect fresh moisture readings from linked sensors
                 var readings = new List<double>();
@@ -151,6 +167,10 @@ namespace iTarlaMapBackend.BackgroundServices
                 {
                     // Soil is dry — turn ON
                     var result = await deviceService.UpdateMotorStatusAsync(motor.Id, motor.FarmerId, true);
+                    if (!result.success)
+                    {
+                        _logger.LogError("Auto: FAILED to turn on motor {Code} — {Msg}", motor.DeviceCode, result.message);
+                    }
                     if (result.success)
                     {
                         await firebaseService.SetMotorActiveAsync(motor.DeviceCode, true);
