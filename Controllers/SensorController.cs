@@ -53,8 +53,15 @@ namespace iTarlaMapBackend.Controllers
         public async Task<IActionResult> Assign([FromBody] AssignSensorDto dto)
         {
             var farmerId = await GetCurrentFarmerIdAsync();
-            var sensor = await _deviceService.AssignSensorAsync(farmerId, dto);
-            return Ok(sensor);
+            try
+            {
+                var sensor = await _deviceService.AssignSensorAsync(farmerId, dto);
+                return Ok(sensor);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
