@@ -12,6 +12,9 @@ namespace iTarlaMapBackend.DTOs
         // Time-of-day mode
         public List<TimeWindowDto> TimeWindows { get; set; } = new();
 
+        // Day-of-week filter (0=Sun … 6=Sat). Empty = all days.
+        public List<int> AllowedDays { get; set; } = new();
+
         // Safety rules
         public int MaxRuntimeMinutes { get; set; } = 0;
         public int? ForbiddenFromHour { get; set; }

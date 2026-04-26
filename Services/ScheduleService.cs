@@ -52,6 +52,7 @@ namespace iTarlaMapBackend.Services
                 ForbiddenToHour = dto.ForbiddenToHour,
                 LinkedSensorCode = dto.LinkedSensorCode,
                 DataFreshnessMinutes = dto.DataFreshnessMinutes,
+                AllowedDays = dto.AllowedDays,
                 IsEnabled = true,
                 CreatedAt = DateTime.UtcNow
             };

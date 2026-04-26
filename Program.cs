@@ -26,6 +26,8 @@ BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<FirebaseService>();
+builder.Configuration.AddJsonFile("appsettings.Secrets.json", optional: true);
+builder.Services.AddSingleton<LogService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>

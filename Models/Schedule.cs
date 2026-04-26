@@ -38,6 +38,9 @@ namespace iTarlaMapBackend.Models
         public string? LinkedSensorCode { get; set; }
         public int DataFreshnessMinutes { get; set; } = 0; // 0 = skip check
 
+        // Day-of-week filter: 0=Sun,1=Mon,...,6=Sat. Empty list = all days allowed.
+        public List<int> AllowedDays { get; set; } = new();
+
         public bool IsEnabled { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

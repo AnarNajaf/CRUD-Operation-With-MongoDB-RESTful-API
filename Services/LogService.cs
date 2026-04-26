@@ -39,13 +39,31 @@ namespace iTarlaMapBackend.Services
                 .ToListAsync();
         }
 
-        public async Task<List<IrrigationLog>> GetAllLogsAsync(int limit = 100)
+        public async Task<List<IrrigationLog>> GetAllLogsAsync(int skip = 0, int limit = 50)
         {
             return await _logs
                 .Find(_ => true)
                 .SortByDescending(l => l.Timestamp)
+                .Skip(skip)
                 .Limit(limit)
                 .ToListAsync();
+        }
+
+        public async Task<long> CountAllLogsAsync()
+        {
+            return await _logs.CountDocumentsAsync(_ => true);
+        }
+
+        public async Task<bool> DeleteLogAsync(Guid id)
+        {
+            var result = await _logs.DeleteOneAsync(l => l.Id == id);
+            return result.DeletedCount > 0;
+        }
+
+        public async Task<long> ClearAllLogsAsync()
+        {
+            var result = await _logs.DeleteManyAsync(_ => true);
+            return result.DeletedCount;
         }
     }
 }
