@@ -54,6 +54,13 @@ namespace iTarlaMapBackend.Services
             if (farm == null)
                 throw new Exception("Farm not found or does not belong to farmer.");
 
+            // Prevent any user from registering a device code already used by anyone
+            var duplicate = await _sensorCollection
+                .Find(s => s.DeviceCode == dto.DeviceCode)
+                .FirstOrDefaultAsync();
+            if (duplicate != null)
+                throw new Exception($"Sensor '{dto.DeviceCode}' is already registered.");
+
             var sensor = new Sensor
             {
                 Id = Guid.NewGuid(),
@@ -156,6 +163,13 @@ namespace iTarlaMapBackend.Services
 
             if (farm == null)
                 throw new Exception("Farm not found or does not belong to farmer.");
+
+            // Prevent any user from registering a device code already used by anyone
+            var duplicate = await _motorCollection
+                .Find(m => m.DeviceCode == dto.DeviceCode)
+                .FirstOrDefaultAsync();
+            if (duplicate != null)
+                throw new Exception($"Motor '{dto.DeviceCode}' is already registered.");
 
             var motor = new Motor
             {
