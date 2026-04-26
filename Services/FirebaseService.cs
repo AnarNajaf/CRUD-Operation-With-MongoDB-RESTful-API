@@ -16,11 +16,18 @@ namespace iTarlaMapBackend.Services
         public async Task SetMotorActiveAsync(string deviceCode, bool isActive)
         {
             var docRef = _db.Collection("Motors").Document(deviceCode);
-            await docRef.SetAsync(new Dictionary<string, object>
+            var data = new Dictionary<string, object>
             {
                 { "isActive", isActive },
                 { "updatedAt", Timestamp.GetCurrentTimestamp() }
-            }, SetOptions.MergeAll);
+            };
+
+            // Reset the running-hours counter when motor is turned off
+            // so the "running Xh" alert doesn't fire with stale data on next start
+            if (!isActive)
+                data["activeTimeHours"] = 0;
+
+            await docRef.SetAsync(data, SetOptions.MergeAll);
         }
 
         // Returns when the sensor last pushed data, or null if unknown/missing
