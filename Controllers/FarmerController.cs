@@ -35,19 +35,26 @@ namespace iTarlaMapBackend.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
+            if (!Guid.TryParse(id, out _))
+                return BadRequest("Invalid farmer id.");
+
             var selectedfarmer = await _farmerService.GetAsync(id);
+            if (selectedfarmer == null) return NotFound("Farmer not found.");
             return Ok(selectedfarmer);
         }
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var farmers  = await _farmerService.GetAsync();
+            var farmers = await _farmerService.GetAsync();
             return Ok(farmers);
         }
         //Update
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] Farmer farmer)
         {
+            if (!Guid.TryParse(id, out _))
+                return BadRequest("Invalid farmer id.");
+
             await _farmerService.UpdateAsync(id, farmer);
             return Ok();
         }
@@ -55,6 +62,9 @@ namespace iTarlaMapBackend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFarmer(string id)
         {
+            if (!Guid.TryParse(id, out _))
+                return BadRequest("Invalid farmer id.");
+
             await _farmerService.RemoveAsync(id);
             return NoContent();
         }
